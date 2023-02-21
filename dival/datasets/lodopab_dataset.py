@@ -143,7 +143,7 @@ class LoDoPaBDataset(Dataset):
         `None`, if the csv files are not found.
     """
     def __init__(self, min_pt=None, max_pt=None, observation_model='post-log',
-                 min_photon_count=None, sorted_by_patient=False,
+                 min_photon_count=None, sorted_by_patient=False, check_exists=False,
                  impl='astra_cuda'):
         """
         Parameters
@@ -214,23 +214,24 @@ class LoDoPaBDataset(Dataset):
         self.validation_len = LEN['validation']
         self.test_len = LEN['test']
         self.random_access = True
-
-        while not LoDoPaBDataset.check_for_lodopab():
-            print('The LoDoPaB-CT dataset could not be found under the '
-                  "configured path '{}'.".format(
-                      CONFIG['lodopab_dataset']['data_path']))
-            print('Do you want to download it now? (y: download, n: input '
-                  'other path)')
-            download = input_yes_no()
-            if download:
-                success = download_lodopab()
-                if not success:
-                    raise RuntimeError('lodopab dataset not available, '
-                                       'download failed')
-            else:
-                print('Path to LoDoPaB dataset:')
-                DATA_PATH = input()
-                set_config('lodopab_dataset/data_path', DATA_PATH)
+        
+        if check_exists:
+            while not LoDoPaBDataset.check_for_lodopab():
+                print('The LoDoPaB-CT dataset could not be found under the '
+                      "configured path '{}'.".format(
+                          CONFIG['lodopab_dataset']['data_path']))
+                print('Do you want to download it now? (y: download, n: input '
+                      'other path)')
+                download = input_yes_no()
+                if download:
+                    success = download_lodopab()
+                    if not success:
+                        raise RuntimeError('lodopab dataset not available, '
+                                           'download failed')
+                else:
+                    print('Path to LoDoPaB dataset:')
+                    DATA_PATH = input()
+                    set_config('lodopab_dataset/data_path', DATA_PATH)
 
         self.rel_patient_ids = None
         try:
